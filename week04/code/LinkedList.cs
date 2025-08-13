@@ -6,63 +6,44 @@ public class LinkedList : IEnumerable<int>
     private Node? _tail;
 
     /// <summary>
+    /// Insert a new node at the front (i.e. the head) of the linked list.
+    /// </summary>
+    public void InsertHead(int value)
+    {
+        // Create new node
+        Node newNode = new(value);
+        // If the list is empty, then point both head and tail to the new node.
+        if (_head is null)
+        {
+            _head = newNode;
+            _tail = newNode;
+        }
+        // If the list is not empty, then only head will be affected.
+        else
+        {
+            newNode.Next = _head; // Connect new node to the previous head
+            _head.Prev = newNode; // Connect the previous head to the new node
+            _head = newNode; // Update the head to point to the new node
+        }
+    }
+
+    /// <summary>
     /// Insert a new node at the back (i.e. the tail) of the linked list.
     /// </summary>
     public void InsertTail(int value)
     {
         Node newNode = new(value);
-        if (_tail is null)
+        if (_tail is null) // Empty list
         {
             _head = newNode;
             _tail = newNode;
         }
         else
         {
-            _tail.Next = newNode;
-            newNode.Prev = _tail;
-            _tail = newNode;
+            _tail.Next = newNode; // Link old tail to new node
+            newNode.Prev = _tail; // Link new node back to old tail
+            _tail = newNode;      // Update tail
         }
-    }
-
-        public void InsertHead(int value)
-        {
-            // Create new node
-            Node newNode = new(value);
-            // If the list is empty, then point both head and tail to the new node.
-            if (_head is null)
-            {
-                _head = newNode;
-                _tail = newNode;
-            }
-            // If the list is not empty, then only head will be affected.
-            else
-            {
-                newNode.Next = _head; // Connect new node to the previous head
-                _head.Prev = newNode; // Connect the previous head to the new node
-                _head = newNode; // Update the head to point to the new node
-            }
-        }
-    /// <summary>
-    /// Insert a new node at the back (i.e. the tail) of the linked list.
-    /// </summary>
-
-    public void RemoveTail()
-    {
-        if (_head == _tail)
-        {
-            _head = null;
-            _tail = null;
-        }
-        else if (_tail is not null)
-        {
-            _tail = _tail.Prev;
-            _tail!.Next = null;
-        }
-    }
-
-    public void InsertTail(int value)
-    {
-        // TODO Problem 1
     }
 
 
@@ -94,18 +75,17 @@ public class LinkedList : IEnumerable<int>
     /// </summary>
     public void RemoveTail()
     {
-        if (_head == _tail)
+        if (_head == _tail) // 0 or 1 element
         {
             _head = null;
             _tail = null;
         }
-        else if (_tail is not null)
+        else if (_tail is not null) // More than 1 element
         {
-            _tail = _tail.Prev;
-            _tail!.Next = null;
-        } 
+            _tail = _tail.Prev; // Move tail back
+            _tail!.Next = null; // Disconnect old tail
+        }
     }
-
 
     /// <summary>
     /// Insert 'newValue' after the first occurrence of 'value' in the linked list.
@@ -154,19 +134,15 @@ public class LinkedList : IEnumerable<int>
             if (curr.Data == value)
             {
                 if (curr == _head)
-                {
                     RemoveHead();
-                }
                 else if (curr == _tail)
-                {
                     RemoveTail();
-                }
                 else
                 {
                     curr.Prev!.Next = curr.Next;
                     curr.Next!.Prev = curr.Prev;
                 }
-                return;
+                return; // Stop after first removal
             }
             curr = curr.Next;
         }
@@ -182,6 +158,7 @@ public class LinkedList : IEnumerable<int>
         {
             if (curr.Data == oldValue)
             {
+                // Replace the value
                 curr.Data = newValue;
             }
             curr = curr.Next;
@@ -218,7 +195,9 @@ public class LinkedList : IEnumerable<int>
         var curr = _tail;
         while (curr is not null)
         {
+            // Yield current data
             yield return curr.Data;
+            // Move backward
             curr = curr.Prev;
         }
     }

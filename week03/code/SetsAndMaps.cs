@@ -21,21 +21,22 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
-        var seen = new HashSet<string>();
+        var set = new HashSet<string>(words);
         var result = new List<string>();
 
         foreach (var word in words)
         {
-            var reversed = new string(word.Reverse().ToArray());
-
-            if (word[0] != word[1] && seen.Contains(reversed))
+            if (word[0] == word[1]) continue; // skip same-letter words
+            string reverse = new string(new[] { word[1], word[0] });
+            if (set.Contains(reverse))
             {
-                result.Add($"{reversed} & {word}");
+                result.Add($"{word} & {reverse}");
+                set.Remove(word);
+                set.Remove(reverse);
             }
-
-            seen.Add(word);
         }
-        return [];
+
+        return result.ToArray();
     }
 
     /// <summary>
@@ -55,17 +56,12 @@ public static class SetsAndMaps
         foreach (var line in File.ReadLines(filename))
         {
             var fields = line.Split(",");
-            if (fields.Length >= 5)
-            {
-                string degree = fields[4].Trim();
-                if (!string.IsNullOrEmpty(degree))
-                {
-                    if (degrees.ContainsKey(degree))
-                        degrees[degree]++;
-                    else
-                        degrees[degree] = 1;
-                }
-            }
+            var degree = fields[3]; // 0-based index, so column 4 is index 3
+
+            if (degrees.ContainsKey(degree))
+                degrees[degree]++;
+            else
+                degrees[degree] = 1;
         }
 
         return degrees;
@@ -89,29 +85,27 @@ public static class SetsAndMaps
     /// </summary>
     public static bool IsAnagram(string word1, string word2)
     {
-        string clean1 = word1.ToLower().Replace(" ", "");
-        string clean2 = word2.ToLower().Replace(" ", "");
+        word1 = new string(word1.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLower();
+        word2 = new string(word2.Where(c => !char.IsWhiteSpace(c)).ToArray()).ToLower();
 
-        if (clean1.Length != clean2.Length)
-            return false;
+        if (word1.Length != word2.Length) return false;
 
         var dict = new Dictionary<char, int>();
 
-        foreach (char c in clean1)
+        foreach (var c in word1)
         {
-            if (dict.ContainsKey(c))
-                dict[c]++;
-            else
-                dict[c] = 1;
+            if (dict.ContainsKey(c)) dict[c]++;
+            else dict[c] = 1;
         }
 
-        foreach (char c in clean2)
+        foreach (var c in word2)
         {
             if (!dict.ContainsKey(c)) return false;
             dict[c]--;
-            if (dict[c] < 0) return false;
+            if (dict[c] == 0) dict.Remove(c);
         }
-        return false;
+
+        return dict.Count == 0;
     }
 
     /// <summary>
@@ -145,21 +139,9 @@ public static class SetsAndMaps
         // on those classes so that the call to Deserialize above works properly.
         // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
         // 3. Return an array of these string descriptions.
-        var summaries = new List<string>();
-
-        if (featureCollection?.Features != null)
-        {
-            foreach (var feature in featureCollection.Features)
-            {
-                var mag = feature.Properties?.Mag;
-                var place = feature.Properties?.Place;
-
-                if (mag != null && place != null)
-                {
-                    summaries.Add($"{place} - Mag {mag.Value:F2}");
-                }
-            }
-        }
-        return [];
+        return featureCollection.Features
+        .Where(f => f.Properties.Mag.HasValue)
+        .Select(f => $"{f.Properties.Place} - Mag {f.Properties.Mag.Value}")
+        .ToArray();
     }
 }
